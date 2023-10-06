@@ -92,7 +92,7 @@ namespace MapleStoryTools
         BindingList<ScriptCommand> listCommand = new BindingList<ScriptCommand>();
         List<HotKey> listHotKey = new List<HotKey>();
         List<frmPoint> listFrmPoint = new List<frmPoint>();
-        InputLanguage currentInputLanguage;
+        JsonFunction JS = new JsonFunction();
         public ILog log;
         public frmMain frm;
         #endregion
@@ -114,36 +114,56 @@ namespace MapleStoryTools
 
         private void frmAutoScripts_Load(object sender, EventArgs e)
         {
-            cmbMouseType.SelectedIndex = 0;
-            cmbKeyType.SelectedIndex = 0;
+            try
+            {
+                cmbMouseType.SelectedIndex = 0;
+                cmbKeyType.SelectedIndex = 0;
 
-            txtControlKey.Add(txtStart);
-            txtControlKey.Add(txtStop);
+                txtControlKey.Add(txtStart);
+                txtControlKey.Add(txtStop);
 
-            listHotKey = new List<HotKey>();
+                listHotKey = new List<HotKey>();
 
-            string path = Path.Combine(Application.StartupPath, "ScriptsCommand");
+                string path = Path.Combine(Application.StartupPath, "ScriptsCommand");
 
-            if (!File.Exists(path))
-                Directory.CreateDirectory(path);
+                if (!File.Exists(path))
+                    Directory.CreateDirectory(path);
 
-            if (chbLockWindow.Checked && txtWindowName.Text != "")
-                chbLockPoint.Enabled = true;
-            else
-                chbLockPoint.Enabled = false;
+                if (chbLockWindow.Checked && txtWindowName.Text != "")
+                    chbLockPoint.Enabled = true;
+                else
+                    chbLockPoint.Enabled = false;
 
-            dtCommand.Columns.Add("CommandType");
-            dtCommand.Columns.Add("Command");
-            dtCommand.Columns.Add("CommandInfo");
-            dtCommand.Columns.Add("Note");
+                dtCommand.Columns.Add("CommandType");
+                dtCommand.Columns.Add("Command");
+                dtCommand.Columns.Add("CommandInfo");
+                dtCommand.Columns.Add("Note");
 
-            SetHotKey("開始", txtStart);
-            SetHotKey("停止", txtStop);
-            SetHotKey("設定座標", txtSetPoint);
+                SetHotKey("開始", txtStart);
+                SetHotKey("停止", txtStop);
+                SetHotKey("設定座標", txtSetPoint);
 
-            SetHotKey("執行間隔(時)", txtHours);
-            SetHotKey("執行間隔(分)", txtMinutes);
-            SetHotKey("執行間隔(秒)", txtSeconds);
+                SetHotKey("執行間隔(時)", txtHours);
+                SetHotKey("執行間隔(分)", txtMinutes);
+                SetHotKey("執行間隔(秒)", txtSeconds);
+
+                string pathLastScripts = JS.Read<string>(Path.Combine(Application.StartupPath, "Config", "LastScripts.json"));
+                if (File.Exists(pathLastScripts))
+                {
+                    txtScriptFileName.Text = Path.GetFileName(pathLastScripts);
+                    
+                    txtScriptFilePath.Text = pathLastScripts;
+                    BindingList<ScriptCommand> Command = JS.Read<BindingList<ScriptCommand>>(pathLastScripts);
+
+                    dgvCommand.DataSource = listCommand = Command;
+
+                    frm.ShowMessageBox("提示", "已恢復上一次使用的腳本", MessageBoxIcon.Information, MessageBoxButtons.OK);
+                }
+            }
+            catch (Exception ex)
+            {
+                frm.ShowMessageBox("錯誤", ex.Message, MessageBoxIcon.Error, MessageBoxButtons.OK);
+            }
         }
 
         private void frmAutoScripts_FormClosed(object sender, FormClosedEventArgs e)
@@ -773,10 +793,17 @@ namespace MapleStoryTools
         {
             if (!string.IsNullOrEmpty(((TextBox)sender).Text))
             {
-                SetLoopTime();
+                if (((TextBox)sender).Text.Length > 2)
+                    ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(1);
+                ((TextBox)sender).Text = Convert.ToInt32(((TextBox)sender).Text).ToString();
             }
             else
+            {
+                ((TextBox)sender).Text = "0";
                 labFormatTime.Text = "";
+            }
+            ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
+            SetLoopTime();
         }
 
         private void SetLoopTime()
@@ -809,7 +836,7 @@ namespace MapleStoryTools
                e.KeyChar == (Char)52 || e.KeyChar == (Char)53 ||
                e.KeyChar == (Char)54 || e.KeyChar == (Char)55 ||
                e.KeyChar == (Char)56 || e.KeyChar == (Char)57 ||
-               e.KeyChar == (Char)13)
+               e.KeyChar == (Char)13 || e.KeyChar == (Char)8)
             {
                 e.Handled = false;
             }
@@ -819,12 +846,12 @@ namespace MapleStoryTools
                 return;
             }
 
-            if (((TextBox)sender).Text.Length > 1)
-            {
-                ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(((TextBox)sender).Text.Length - 1);
-                ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
-            }
-            ((TextBox)sender).Text = ((TextBox)sender).Text.TrimStart('0');
+            //if (((TextBox)sender).Text.Length > 1)
+            //{
+            //    ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(((TextBox)sender).Text.Length - 1);
+            //    ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
+            //}
+            //((TextBox)sender).Text = ((TextBox)sender).Text.TrimStart('0');
         }
 
         #region 腳本設定
@@ -1223,10 +1250,10 @@ namespace MapleStoryTools
 
                 if (listCommand.Count > 0)
                 {
-                    int index = dgvCommand.SelectedCells[0].RowIndex;
-
-                    if (index != -1)
+                    if (dgvCommand.GetCellCount(DataGridViewElementStates.Selected) > 0)
                     {
+                        int index = dgvCommand.SelectedCells[0].RowIndex;
+
                         if (colorDialog.ShowDialog() == DialogResult.OK)
                         {
                             Color clr = colorDialog.Color;
@@ -1396,37 +1423,25 @@ namespace MapleStoryTools
             {
                 if (listCommand.Count > 0)
                 {
-                    int index = dgvCommand.SelectedCells[0].RowIndex;
+                    int index = dgvCommand.CurrentRow.Index;
 
-                    if (index != -1)
+                    if (index > 0)
                     {
-                        int newIndex = index == 0 ? 0 : index - 1;
-
-                        if (index == newIndex)
-                            return;
-                        if (index >= listCommand.Count || newIndex >= listCommand.Count)
-                            return;
-
-                        ScriptCommand sc = listCommand[index];
-                        listCommand.RemoveAt(index);
-                        listCommand.Insert(newIndex, sc);
+                        ScriptCommand temp = listCommand[index];
+                        listCommand[index] = listCommand[index - 1];
+                        listCommand[index - 1] = temp;
 
                         dgvCommand.DataSource = listCommand;
+
+                        dgvCommand.ClearSelection();
+                        dgvCommand.Rows[index - 1].Cells[0].Selected = true;
 
                         Color clr = ConvertArgbToColor(listCommand[index].RowColor);
                         dgvCommand.Rows[index].DefaultCellStyle.BackColor = Color.FromArgb(clr.A, clr.R, clr.G, clr.B);
 
                         clr = ConvertArgbToColor(listCommand[index - 1].RowColor);
                         dgvCommand.Rows[index - 1].DefaultCellStyle.BackColor = Color.FromArgb(clr.A, clr.R, clr.G, clr.B);
-
-                        if (listCommand.Count > 0)
-                        {
-                            dgvCommand.ClearSelection();
-                            dgvCommand.Rows[index - 1].Selected = true;
-                        }
                     }
-                    else
-                        frm.ShowMessageBox("錯誤", "無可移動的項目!", MessageBoxIcon.Error, MessageBoxButtons.OK);
                 }
                 else
                     frm.ShowMessageBox("錯誤", "無可移動的項目!", MessageBoxIcon.Error, MessageBoxButtons.OK);
@@ -1448,37 +1463,28 @@ namespace MapleStoryTools
             {
                 if (listCommand.Count > 0)
                 {
-                    int index = dgvCommand.SelectedCells[0].RowIndex;
+                    int index = dgvCommand.CurrentRow.Index;
 
-                    if (index != -1)
-                    { 
-                        int newIndex = index == listCommand.Count ? 0 : index + 1;
-
-                        if (index == newIndex)
-                            return;
-                        if (index >= listCommand.Count || newIndex >= listCommand.Count)
+                    if (index >= 0)
+                    {
+                        if (index == listCommand.Count - 1)
                             return;
 
-                        ScriptCommand sc = listCommand[index];
-                        listCommand.RemoveAt(index);
-                        listCommand.Insert(newIndex, sc);
+                        ScriptCommand temp = listCommand[index];
+                        listCommand[index] = listCommand[index + 1];
+                        listCommand[index + 1] = temp;
 
                         dgvCommand.DataSource = listCommand;
+
+                        dgvCommand.ClearSelection();
+                        dgvCommand.Rows[index + 1].Cells[0].Selected = true;
 
                         Color clr = ConvertArgbToColor(listCommand[index].RowColor);
                         dgvCommand.Rows[index].DefaultCellStyle.BackColor = Color.FromArgb(clr.A, clr.R, clr.G, clr.B);
 
                         clr = ConvertArgbToColor(listCommand[index + 1].RowColor);
                         dgvCommand.Rows[index + 1].DefaultCellStyle.BackColor = Color.FromArgb(clr.A, clr.R, clr.G, clr.B);
-
-                        if (listCommand.Count > 0)
-                        {
-                            dgvCommand.ClearSelection();
-                            dgvCommand.Rows[index + 1].Selected = true;
-                        }
                     }
-                    else
-                        frm.ShowMessageBox("錯誤", "無可移動的項目!", MessageBoxIcon.Error, MessageBoxButtons.OK);
                 }
                 else
                     frm.ShowMessageBox("錯誤", "無可移動的項目!", MessageBoxIcon.Error, MessageBoxButtons.OK);
@@ -1500,30 +1506,20 @@ namespace MapleStoryTools
             {
                 if (listCommand.Count > 0)
                 {
-                    int index = dgvCommand.SelectedCells[0].RowIndex;
+                    int index = dgvCommand.SelectedRows[0].Index;
 
-                    if (index != -1)
-                    {
-                        listCommand.RemoveAt(index);
+                    listCommand.RemoveAt(index);
 
-                        dgvCommand.DataSource = listCommand;
+                    dgvCommand.ClearSelection();
+                    if (listCommand.Count() == 0)
+                        return;
 
+                    dgvCommand.DataSource = listCommand;
 
-                        //Color clr = ConvertArgbToColor(listCommand[index].RowColor);
-                        //dgvCommand.Rows[index].DefaultCellStyle.BackColor = Color.FromArgb(clr.A, clr.R, clr.G, clr.B);
-
-                        //clr = ConvertArgbToColor(listCommand[index - 1].RowColor);
-                        //dgvCommand.Rows[index - 1].DefaultCellStyle.BackColor = Color.FromArgb(clr.A, clr.R, clr.G, clr.B);
-
-                        if (listCommand.Count > 0)
-                        {
-                            dgvCommand.ClearSelection();
-                            dgvCommand.Rows[index - 1].Selected = true;
-                        }
-
-                    }
+                    if (index == 0)
+                        dgvCommand.Rows[index].Cells[0].Selected = true;
                     else
-                        frm.ShowMessageBox("錯誤", "無可刪除的項目!", MessageBoxIcon.Error, MessageBoxButtons.OK);
+                        dgvCommand.Rows[index - 1].Cells[0].Selected = true;
                 }
                 else
                     frm.ShowMessageBox("錯誤", "無可刪除的項目!", MessageBoxIcon.Error, MessageBoxButtons.OK);
@@ -1728,26 +1724,11 @@ namespace MapleStoryTools
             {
                 if (isScriptStart)
                 {
-                    if (currentCommand.Function == "等待")
-                    {
-                        if (currendWaitTime == 0)
-                            currendWaitTime = Convert.ToDouble(currentCommand.Command);
-                        else
-                        {
-                            currendWaitTime -= 0.1;
-                            if (currendWaitTime < 0)
-                                currendWaitTime = 0;
-                        }
-                        labCurrentCommand.Text = $"等待 {Math.Round(currendWaitTime, 1, MidpointRounding.AwayFromZero):0.0} 秒";
-                    }
-                    else
-                    {
-                        currendWaitTime = 0;
-                        labCurrentCommand.Text = currentCommand.Info;
-                    }
 
                     if (nextRumTime >= DateTime.Now)
                     {
+                        labCurrentCommand.Text = "";
+                        currendWaitTime = 0;
                         string hour = (nextRumTime - DateTime.Now).Hours + "時";
                         string minute = (nextRumTime - DateTime.Now).Minutes + "分";
                         string second = (nextRumTime - DateTime.Now).Seconds + "秒";
@@ -1768,6 +1749,24 @@ namespace MapleStoryTools
                     else
                     {
                         labFormatTime.Text = "(腳本執行中...)";
+
+                        if (currentCommand.Function == "等待")
+                        {
+                            if (currendWaitTime == 0)
+                                currendWaitTime = Convert.ToDouble(currentCommand.Command);
+                            else
+                            {
+                                currendWaitTime -= 0.1;
+                                if (currendWaitTime < 0)
+                                    currendWaitTime = 0;
+                            }
+                            labCurrentCommand.Text = $"等待 {Math.Round(currendWaitTime, 1, MidpointRounding.AwayFromZero):0.0} 秒";
+                        }
+                        else
+                        {
+                            currendWaitTime = 0;
+                            labCurrentCommand.Text = currentCommand.Info;
+                        }
                     }
                 }
             }
@@ -1831,15 +1830,6 @@ namespace MapleStoryTools
                         {
                             for (int i = 0; i < listCommand.Count; i++)
                             {
-
-                                //isErual &= listCommand[i].Type == checkCommand[i].Type;
-                                //isErual &= listCommand[i].Function == checkCommand[i].Function;
-                                //isErual &= listCommand[i].Command == checkCommand[i].Command;
-                                //isErual &= listCommand[i].Info == checkCommand[i].Info;
-                                //isErual &= listCommand[i].IsLockPoint == checkCommand[i].IsLockPoint;
-                                //isErual &= listCommand[i].Note == checkCommand[i].Note;
-                                //isErual &= listCommand[i].RowColor == checkCommand[i].RowColor;
-
                                 isErual = listCommand[i].Equals(checkCommand[i]);
                                 
                                 if (!isErual)
@@ -1851,13 +1841,23 @@ namespace MapleStoryTools
 
                         if (!isErual)
                         {
-                            if (frm.ShowMessageBox("提示", "腳本內容有更新，請問是否需儲存?", MessageBoxIcon.Question, MessageBoxButtons.YesNo) == DialogResult.Yes)
+                            DialogResult dia = frm.ShowMessageBox("提示", "腳本內容有更新，請問是否需儲存?", MessageBoxIcon.Question, MessageBoxButtons.YesNo);
+                            if (dia == DialogResult.Yes)
                             {
                                 if (SaveScripts() == DialogResult.Cancel)
                                     e.Cancel = true;
                             }
+                            else if (dia == DialogResult.No)
+                                e.Cancel = false;
+                            else 
+                                e.Cancel = true;
                         }
                     }
+
+                    if (File.Exists(txtScriptFilePath.Text))
+                        JS.Write(Path.Combine(Application.StartupPath, "Config", "LastScripts.json"), txtScriptFilePath.Text);
+                    else
+                        JS.Write(Path.Combine(Application.StartupPath, "Config", "LastScripts.json"), "");
 
                     SaveHotKey("開始", txtStart.Text);
                     SaveHotKey("停止", txtStop.Text);
@@ -1958,11 +1958,17 @@ namespace MapleStoryTools
         private Color ConvertArgbToColor(string argb)
         {
             Color clr = new Color();
-            int A = Convert.ToInt32(argb.Split(',')[0]);
-            int R = Convert.ToInt32(argb.Split(',')[1]);
-            int G = Convert.ToInt32(argb.Split(',')[2]);
-            int B = Convert.ToInt32(argb.Split(',')[3]);
-            clr = Color.FromArgb(A, R, G, B);
+            if (!string.IsNullOrEmpty(argb))
+            {
+                int A = Convert.ToInt32(argb.Split(',')[0]);
+                int R = Convert.ToInt32(argb.Split(',')[1]);
+                int G = Convert.ToInt32(argb.Split(',')[2]);
+                int B = Convert.ToInt32(argb.Split(',')[3]);
+                clr = Color.FromArgb(A, R, G, B);
+            }
+            else
+                clr = Color.White;
+
             return clr;
         }
 

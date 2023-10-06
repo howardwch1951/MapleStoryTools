@@ -231,6 +231,7 @@
     <Compile Include="frmUpdateNote.Designer.cs">
       <DependentUpon>frmUpdateNote.cs</DependentUpon>
     </Compile>
+    <Compile Include="JsonFunction.cs" />
     <Compile Include="KeyboardHook.cs" />
     <Compile Include="Mouse.cs" />
     <Compile Include="MouseHook.cs" />
@@ -310,6 +311,37 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="rgbSpectrum.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Library\AutoHotkey.Interop.dll" />
+    <Content Include="Library\JsonSubTypes.dll" />
+    <Content Include="Library\Microsoft.Bcl.AsyncInterfaces.dll" />
+    <Content Include="Library\Microsoft.Bcl.AsyncInterfaces.xml" />
+    <Content Include="Library\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+    <Content Include="Library\Microsoft.Extensions.DependencyInjection.Abstractions.xml" />
+    <Content Include="Library\Microsoft.Extensions.Logging.Abstractions.dll" />
+    <Content Include="Library\Microsoft.Extensions.Logging.Abstractions.xml" />
+    <Content Include="Library\Newtonsoft.Json.dll" />
+    <Content Include="Library\Newtonsoft.Json.xml" />
+    <Content Include="Library\Notion.Client.dll" />
+    <Content Include="Library\RestSharp.dll" />
+    <Content Include="Library\RestSharp.xml" />
+    <Content Include="Library\System.Buffers.dll" />
+    <Content Include="Library\System.Buffers.xml" />
+    <Content Include="Library\System.Memory.dll" />
+    <Content Include="Library\System.Memory.xml" />
+    <Content Include="Library\System.Numerics.Vectors.dll" />
+    <Content Include="Library\System.Numerics.Vectors.xml" />
+    <Content Include="Library\System.Runtime.CompilerServices.Unsafe.dll" />
+    <Content Include="Library\System.Runtime.CompilerServices.Unsafe.xml" />
+    <Content Include="Library\System.Text.Encodings.Web.dll" />
+    <Content Include="Library\System.Text.Encodings.Web.xml" />
+    <Content Include="Library\System.Text.Json.dll" />
+    <Content Include="Library\System.Text.Json.xml" />
+    <Content Include="Library\System.Threading.Tasks.Extensions.dll" />
+    <Content Include="Library\System.Threading.Tasks.Extensions.xml" />
+    <Content Include="Library\System.ValueTuple.dll" />
+    <Content Include="Library\System.ValueTuple.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

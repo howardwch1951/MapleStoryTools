@@ -22,7 +22,7 @@ namespace MapleStoryTools
         {
             this.Icon = new Icon(Path.Combine(Application.StartupPath, "Icon.ico"));
 
-            InitializeComponent();
+            InitializeComponent();            
         }
 
         public override void Refresh()
@@ -114,6 +114,11 @@ namespace MapleStoryTools
         {
 
             Refresh();
+        }
+
+        private void frmMessageBox_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Console.WriteLine(  );
         }
     }
 }

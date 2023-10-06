@@ -80,6 +80,7 @@ namespace MapleStoryTools
             this.MinimizeBox = false;
             this.Name = "frmMessageBox";
             this.Text = "frmMessageBox";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMessageBox_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 

@@ -141,7 +141,7 @@ namespace MapleStoryTools
                 case Keys.D7:
                 case Keys.D8:
                 case Keys.D9:
-                    return key.ToString().Replace("D", "NumPad");
+                    return key.ToString().Replace("D", "");
                 case Keys.OemPeriod:
                     return ".";
                 case Keys.Oemcomma:

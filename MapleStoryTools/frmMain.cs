@@ -65,7 +65,7 @@ namespace MapleStoryTools
         private void frmMain_Load(object sender, EventArgs e)
         {
             try
-            {                
+            {
                 //IsMdiContainer = true;
 
                 #region 更新Update主程式
@@ -275,7 +275,17 @@ namespace MapleStoryTools
                     }
 
                     obj = JObject.Parse(body);
-                    serverData = data = obj.GetValue("results") as JArray;
+                    data = obj.GetValue("results") as JArray;
+                    var jsList = data
+                    .Where(item =>
+                    {
+                        var checkboxValue = item["properties"]?["Push"]?["checkbox"];
+                        return checkboxValue != null && (bool)checkboxValue == true;
+                    })
+                    .ToList();
+
+                    serverData = data = new JArray(jsList);
+
                     canUpdate = Convert.ToBoolean(data[0]["properties"]["Push"]["checkbox"]);
                     serverVersion = data[0]["properties"]["Version"]["title"][0]["text"]["content"].ToString();
                     fileName = data[0]["properties"]["Files"]["files"][0]["name"].ToString();
@@ -291,11 +301,18 @@ namespace MapleStoryTools
                         //檢查更新檔URL和檔名是否成功取得
                         if (!string.IsNullOrEmpty(fileUrl) && !string.IsNullOrEmpty(fileName))
                         {
-                            ShowMessageBox("檢查更新", "目前有新版本可更新!", MessageBoxIcon.Information, MessageBoxButtons.OK);
+                            DialogResult dia = ShowMessageBox("檢查更新", "目前有新版本可更新，是否要現在更新?", MessageBoxIcon.Information, MessageBoxButtons.YesNo);
 
-                            Process.Start(Path.Combine(Application.StartupPath, "Update.exe"));
+                            if (dia == DialogResult.Yes)
+                            {
+                                Process.Start(Path.Combine(Application.StartupPath, "Update.exe"));
 
-                            Environment.Exit(0);
+                                Environment.Exit(0);
+                            }
+                            else
+                            {
+                                ShowMessageBox("提示", "更新作業已延後30分鐘", MessageBoxIcon.Information, MessageBoxButtons.OK);
+                            }
                         }
                         else
                         {
@@ -531,7 +548,7 @@ namespace MapleStoryTools
                     pForm.Location.X + pForm.Width,
                     pForm.Location.Y);
 
-                frm.Show();
+                frm.Show(this);
             }
         }
 
