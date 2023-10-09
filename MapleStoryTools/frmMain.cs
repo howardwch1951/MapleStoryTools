@@ -49,17 +49,26 @@ namespace MapleStoryTools
         bool isSimulation = Convert.ToBoolean(ConfigurationManager.AppSettings["isSimulation"]);
         JArray serverData;
         DateTime checkTime = new DateTime();
+        API api = new API();
         public List<Location> listLocation = new List<Location>();
         public readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public frmMain()
         {
-            this.Icon = new Icon(Path.Combine(Application.StartupPath, "Icon.ico"));
+            try
+            {
+                this.Icon = new Icon(Path.Combine(Application.StartupPath, "Icon.ico"));
 
-            //log4net 載入設定檔
-            log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(Path.Combine(Application.StartupPath, "log4net.config.xml")));
+                //log4net 載入設定檔
+                log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(Path.Combine(Application.StartupPath, "log4net.config.xml")));
 
-            InitializeComponent();
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                throw ex;
+            }
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -116,6 +125,18 @@ namespace MapleStoryTools
 
                 #endregion
 
+                #region Read API TOKEN
+                // 從資源中讀取資源數據到 MemoryStream
+                using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("MapleStoryTools.API.json"))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        string json = reader.ReadToEnd();
+                        api = JsonConvert.DeserializeObject<API>(json);
+                    }
+                }
+                #endregion
+
                 toolVersion.Text = $"目前版本：{localVersion}";
 
                 SetFormLocation(this);
@@ -161,7 +182,7 @@ namespace MapleStoryTools
             if (Application.OpenForms["frmUpdateNote"] != null)
                 Application.OpenForms["frmUpdateNote"].Close();
             //this.Hide();
-            fAutoScripts.frm = this;
+            fAutoScripts.frm = this;    
             fAutoScripts.isFormOpen = true;
             fAutoScripts.log = this.log;
             fAutoScripts.TopLevel = false;
@@ -666,6 +687,42 @@ namespace MapleStoryTools
             f.SetPoint("右上");
             f.Show();
         }
+
+        private async void button3_Click(object sender, EventArgs e)
+        {
+            string token = "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";
+            string owner = "howardwch1951";
+            string repo = "MapleStoryTools";
+            string releaseName = "v1.0.0";
+            string releaseTag = "v1.0.0";
+
+            string apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases";
+
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"token {token}");
+            client.DefaultRequestHeaders.Add("User-Agent", "MapleStoryTools");
+
+            var releaseData = new
+            {
+                tag_name = releaseTag,
+                name = releaseName,
+                body = "Release description"
+            };
+
+            var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(releaseData), Encoding.UTF8, "application/vnd.github");
+
+            var response = await client.PostAsync(apiUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("GitHub Release created successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Failed to create GitHub Release.");
+                Console.WriteLine(await response.Content.ReadAsStringAsync());
+            }
+        }
     }
 
     public class UpdateNote
@@ -679,5 +736,11 @@ namespace MapleStoryTools
         public string Form { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
+    }
+
+    public class API
+    {
+        public string Notion { get; set; }
+        public string GitHub { get; set; }
     }
 }

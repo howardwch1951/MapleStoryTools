@@ -237,6 +237,7 @@
     <Compile Include="MouseHook.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="API.json" />
     <None Include="log4net.config.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
