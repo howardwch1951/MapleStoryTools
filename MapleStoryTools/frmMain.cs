@@ -261,7 +261,6 @@ namespace MapleStoryTools
                 {
                     #region 設定Notion API
                     Uri apiUrl;
-                    string api = "secret_d9q9iNSM6RsFK6SAgpfdTAgrWn8nul9HmypATEgTktU";
                     if (isSimulation)
                         apiUrl = new Uri("https://api.notion.com/v1/databases/5ffc33fd3e9c455586c827d509c04852/query");
                     else
@@ -274,7 +273,7 @@ namespace MapleStoryTools
                         RequestUri = apiUrl,
                         Headers =
                     {
-                        { "Authorization", $"Bearer {api}" },
+                        { "Authorization", $"Bearer {api.Notion}" },
                         { "accept", "application/json" },
                         { "Notion-Version", "2022-06-28" },
                     },
