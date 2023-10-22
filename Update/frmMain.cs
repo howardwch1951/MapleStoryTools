@@ -26,14 +26,17 @@ namespace Update
     public partial class frmMain : Form
     {
         string message = "程式更新中，請稍後";
-        private Point mouseDownLocation;
+        Point mouseDownLocation;
+        string UpdateFileUrl = "";
+        List<Release> listRelease = new List<Release>();
+        string[] UpdateFileName = new string[] { "MapleStoryTools.exe", "MapleStoryTools.exe.Config", "Update.zip" };
         API api = new API();
         public readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public frmMain()
         {
             //log4net 載入設定檔
-            log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(Path.Combine(Application.StartupPath, "log4net.config.xml")));
+            log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(Path.Combine(Application.StartupPath, "Library", "log4net.config.xml")));
             this.Icon = new Icon(Path.Combine(Application.StartupPath, "Icon.ico"));
             InitializeComponent();
         }
@@ -125,22 +128,115 @@ namespace Update
             }
         }
 
-        #region 檢查更新
+        /// <summary>
+        /// 檢查最新版本
+        /// </summary>
+        /// <returns></returns>
+        private async Task<string> CheckVersion()
+        {
+            string Version = "";
+            try
+            {
+                string owner = "howardwch1951";
+                string repo = "MapleStoryTools";
+
+                string apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases";
+
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Authorization", $"token {api.GitHub}");
+                client.DefaultRequestHeaders.Add("User-Agent", "MapleStoryTools");
+
+                var response = await client.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string body = await response.Content.ReadAsStringAsync();
+                    listRelease = JsonConvert.DeserializeObject<List<Release>>(body);
+                    UpdateFileUrl = JsonConvert.DeserializeObject<Assets>(listRelease[0].Assets[0].ToString()).browser_download_url;
+                    Version = listRelease[0].Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return Version;
+        }
+
+        /// <summary>
+        /// 下載更新檔
+        /// </summary>
+        /// <returns></returns>
+        private async Task DownloadUpdateFile(string pVersion, string pFileName)
+        {
+            try
+            {
+                string owner = "howardwch1951";
+                string repo = "MapleStoryTools";
+
+                string apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/tags/{pVersion}";
+
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Authorization", $"token {api.GitHub}");
+                client.DefaultRequestHeaders.Add("User-Agent", "MapleStoryTools");
+
+                var response = await client.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+
+                    dynamic releaseInfo = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+
+                    foreach (var asset in releaseInfo.assets)
+                    {
+                        if (asset.name == pFileName)
+                        {
+                            string downloadUrl = asset.browser_download_url;
+
+                            using (var fileStream = System.IO.File.Create(pFileName))
+                            {
+                                HttpResponseMessage downloadResponse = await client.GetAsync(downloadUrl);
+                                if (downloadResponse.IsSuccessStatusCode)
+                                {
+                                    Stream contentStream = await downloadResponse.Content.ReadAsStreamAsync();
+                                    await contentStream.CopyToAsync(fileStream);
+                                    Console.WriteLine($"文件已下载到 {pFileName}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("下载失败，HTTP响应状态码: " + downloadResponse.StatusCode);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("获取 Release 信息失败，HTTP响应状态码: " + response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+        }
+
+        /// <summary>
+        /// 更新作業
+        /// </summary>
+        /// <returns></returns>
         private async Task DoUpdateWork()
         {
-            JObject obj;
-            JArray data;
-            bool canUpdate = false;
-            string body = "";
             string serverVersion = "";
             string fileName = "";
-            string fileUrl = "";
             string zipFilePath = "";
             string extractPath = "";
-            string note = "";
             try
             {
                 log.Debug("準備更新");
+
                 #region 關閉MapleStoryTools程式
                 Process[] processes = Process.GetProcessesByName("MapleStoryTools");
 
@@ -153,70 +249,33 @@ namespace Update
 
                 if (CheckConnect())
                 {
-                    log.Debug("設定Notion API");
-                    #region 設定Notion API
-                    Uri apiUrl;
-                    if (CheckSimulationn())
-                        apiUrl = new Uri("https://api.notion.com/v1/databases/5ffc33fd3e9c455586c827d509c04852/query");
-                    else
-                        apiUrl = new Uri("https://api.notion.com/v1/databases/fce1f59ac3674047a2590da3f3e2bc06/query");
-
-                    var httpClient = new HttpClient();
-                    var request = new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Post,
-                        RequestUri = apiUrl,
-                        Headers =
-                    {
-                        { "Authorization", $"Bearer {api.Notion}" },
-                        { "accept", "application/json" },
-                        { "Notion-Version", "2022-06-28" },
-                    },
-                        Content = new StringContent("{\"page_size\":100}")
-                        {
-                            Headers =
-                        {
-                            ContentType = new MediaTypeHeaderValue("application/json")
-                        }
-                        }
-                    };
-                    #endregion
-
                     log.Debug("取得最新版本號、讀取更新檔");
-                    #region Notion Table 取得最新版本號、更新檔讀取
-                    using (var response = await httpClient.SendAsync(request))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        body = await response.Content.ReadAsStringAsync();
-                    }
-
-                    obj = JObject.Parse(body);
-                    data = obj.GetValue("results") as JArray;
-                    canUpdate = Convert.ToBoolean(data[0]["properties"]["Push"]["checkbox"]);
-                    serverVersion = data[0]["properties"]["Version"]["title"][0]["text"]["content"].ToString();
-                    fileName = data[0]["properties"]["Files"]["files"][0]["name"].ToString();
-                    fileUrl = data[0]["properties"]["Files"]["files"][0]["file"]["url"].ToString();
-                    note = data[0]["properties"]["Note"]["rich_text"][0]["text"]["content"].ToString();
-                    #endregion
+                    serverVersion = await CheckVersion();
 
                     log.Debug("檢查是否需更新");
                     //檢查目前版本是否須更新
-                    if (canUpdate && CheckLocalVersion() != serverVersion)
+                    if (CheckLocalVersion() != serverVersion)
                     {
                         //檢查更新檔URL和檔名是否成功取得
-                        if (!string.IsNullOrEmpty(fileUrl) && !string.IsNullOrEmpty(fileName))
+                        fileName = Path.GetFileName(UpdateFileUrl);
+                        if (!string.IsNullOrEmpty(UpdateFileUrl) && !string.IsNullOrEmpty(fileName))
                         {
-
-                            log.Debug("下載更新檔");
                             #region 下載更新檔
+                            log.Debug("下載更新檔");
+                            await DownloadUpdateFile(serverVersion, fileName);
+                            //await DownloadUpdateFile(UpdateFileUrl, Path.Combine(Application.StartupPath, fileName));
+                            using (WebClient wc = new WebClient())
+                            {
+                                wc.DownloadFile(new System.Uri(UpdateFileUrl), Path.Combine(Application.StartupPath, fileName));
+                            }
                             using (var webClient = new WebClient())
                             {
-                                webClient.DownloadFile(fileUrl, Path.Combine(Application.StartupPath, fileName));
+                                webClient.DownloadFile(UpdateFileUrl, Path.Combine(Application.StartupPath, fileName));
                             }
                             #endregion
 
-                            log.Debug("解壓縮更新檔");
                             #region 解壓縮更新檔
+                            log.Debug("解壓縮更新檔");
                             zipFilePath = Path.Combine(Application.StartupPath, fileName);
                             extractPath = Application.StartupPath;
                             using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
@@ -225,19 +284,21 @@ namespace Update
                                 {
                                     string destinationPath = Path.Combine(extractPath, entry.FullName);
 
-                                    // 如果檔案已存在，則先刪除
-                                    if (File.Exists(destinationPath))
+                                    if (UpdateFileName.Contains(entry.FullName))
                                     {
-                                        File.Delete(destinationPath);
+                                        // 如果檔案已存在，則先刪除
+                                        //if (File.Exists(destinationPath))
+                                        //{
+                                        //    File.Delete(destinationPath);
+                                        //}
+                                        entry.ExtractToFile(destinationPath, true);
                                     }
-
-                                    entry.ExtractToFile(destinationPath);
                                 }
                             }
                             #endregion
 
-                            log.Debug("新增Library引用檔");
                             #region 新增Library引用檔
+                            log.Debug("新增Library引用檔");
                             if (File.Exists(Path.Combine(Application.StartupPath, "Library.zip")))
                             {
                                 //解壓縮Library資料夾
@@ -245,8 +306,8 @@ namespace Update
                             }
                             #endregion
 
-                            log.Debug("刪除更新檔壓縮檔");
                             #region 刪除更新檔壓縮檔
+                            log.Debug("刪除更新檔壓縮檔");
                             File.Delete(zipFilePath);
                             #endregion
 
@@ -265,11 +326,6 @@ namespace Update
                             File.WriteAllText(Path.Combine(Application.StartupPath, "Version.json"), updatedJson);
                             */
                             #endregion
-
-                            log.Debug("更新版本日誌");
-                            #region 更新版本日誌
-                            WriteUpdateNote(data);
-                            #endregion
                         }
                     }
                 }
@@ -283,8 +339,8 @@ namespace Update
             }
             finally
             {
-                log.Debug("啟動主程式");
                 #region 開啟MapleStoryTools執行檔
+                log.Debug("啟動主程式");
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.FileName = Path.Combine(Application.StartupPath, "MapleStoryTools.exe");
                 startInfo.Verb = "runas"; // 以系統管理員身分執行
@@ -292,51 +348,12 @@ namespace Update
                 Process.Start(startInfo);
                 #endregion
 
-                log.Debug("關閉更新程式");
                 #region 關閉更新程式
+                log.Debug("關閉更新程式");
                 Environment.Exit(0);
                 #endregion
             }
         }
-        #endregion
-
-        #region 更新版本日誌
-        private void WriteUpdateNote(JArray data)
-        {
-            try
-            {
-                int rowNum = data.Count < 10 ? data.Count : 10;
-                string path = Path.Combine(Application.StartupPath, "UpdateNote.json");
-
-                if (!File.Exists(path))
-                    using (StreamWriter writer = File.CreateText(path)) { }
-
-                // 讀取原始 JSON 檔案的內容
-                string json = File.ReadAllText(path);
-
-                List<UpdateNote> notes = new List<UpdateNote>();
-
-                for (int i = 0; i < rowNum; i++)
-                {
-                    notes.Add(new UpdateNote
-                    {
-                        Version = data[i]["properties"]["Version"]["title"][0]["text"]["content"].ToString(),
-                        Note = data[i]["properties"]["Note"]["rich_text"][0]["text"]["content"].ToString()
-                    });
-                }
-
-                // 將資料結構轉換回 JSON 格式的字串
-                string updatedJson = JsonConvert.SerializeObject(notes, Formatting.Indented);
-
-                // 寫入更新後的 JSON 字串到原始檔案
-                File.WriteAllText(path, updatedJson);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-        #endregion
 
         #region 檢查程式目前版本
         public string CheckLocalVersion()
@@ -453,5 +470,17 @@ namespace Update
     {
         public string Notion { get; set; }
         public string GitHub { get; set; }
+    }
+
+    public class Release
+    {
+        public string Name { get; set; }
+        public string Body { get; set; }
+        public List<Object> Assets { get; set; }
+    }
+
+    public class Assets
+    {
+        public string browser_download_url { get; set; }
     }
 }

@@ -30,8 +30,8 @@ namespace MapleStoryTools
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.txtKeyCommand = new System.Windows.Forms.TextBox();
             this.btnAddKey = new System.Windows.Forms.Button();
             this.txtMinutes = new System.Windows.Forms.TextBox();
@@ -164,7 +164,7 @@ namespace MapleStoryTools
             this.txtMinutes.Size = new System.Drawing.Size(25, 29);
             this.txtMinutes.TabIndex = 9;
             this.txtMinutes.Text = "0";
-            this.txtMinutes.TextChanged += new System.EventHandler(this.txtRunTime_TextChanged);
+            this.txtMinutes.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
             this.txtMinutes.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // txtStop
@@ -205,7 +205,7 @@ namespace MapleStoryTools
             this.txtHours.Size = new System.Drawing.Size(25, 29);
             this.txtHours.TabIndex = 7;
             this.txtHours.Text = "0";
-            this.txtHours.TextChanged += new System.EventHandler(this.txtRunTime_TextChanged);
+            this.txtHours.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
             this.txtHours.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // label7
@@ -354,14 +354,14 @@ namespace MapleStoryTools
             this.dgvCommand.AllowUserToResizeRows = false;
             this.dgvCommand.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dgvCommand.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvCommand.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvCommand.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgvCommand.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvCommand.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colType,
@@ -377,8 +377,8 @@ namespace MapleStoryTools
             this.dgvCommand.RowHeadersVisible = false;
             this.dgvCommand.RowHeadersWidth = 51;
             this.dgvCommand.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.dgvCommand.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.dgvCommand.RowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgvCommand.RowTemplate.Height = 24;
             this.dgvCommand.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvCommand.Size = new System.Drawing.Size(762, 205);
@@ -528,8 +528,8 @@ namespace MapleStoryTools
             this.txtSleepHours.Size = new System.Drawing.Size(25, 29);
             this.txtSleepHours.TabIndex = 16;
             this.txtSleepHours.Text = "0";
-            this.txtSleepHours.TextChanged += new System.EventHandler(this.txtSleepTime_TextChanged);
-            this.txtSleepHours.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtSleepTime_KeyPress);
+            this.txtSleepHours.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
+            this.txtSleepHours.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // txtSleepMinutes
             // 
@@ -541,8 +541,8 @@ namespace MapleStoryTools
             this.txtSleepMinutes.Size = new System.Drawing.Size(25, 29);
             this.txtSleepMinutes.TabIndex = 18;
             this.txtSleepMinutes.Text = "0";
-            this.txtSleepMinutes.TextChanged += new System.EventHandler(this.txtSleepTime_TextChanged);
-            this.txtSleepMinutes.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtSleepTime_KeyPress);
+            this.txtSleepMinutes.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
+            this.txtSleepMinutes.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // txtSleepSeconds
             // 
@@ -554,21 +554,21 @@ namespace MapleStoryTools
             this.txtSleepSeconds.Size = new System.Drawing.Size(25, 29);
             this.txtSleepSeconds.TabIndex = 20;
             this.txtSleepSeconds.Text = "0";
-            this.txtSleepSeconds.TextChanged += new System.EventHandler(this.txtSleepTime_TextChanged);
-            this.txtSleepSeconds.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtSleepTime_KeyPress);
+            this.txtSleepSeconds.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
+            this.txtSleepSeconds.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // txtSleepMilliseconds
             // 
             this.txtSleepMilliseconds.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.txtSleepMilliseconds.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtSleepMilliseconds.Location = new System.Drawing.Point(298, 23);
-            this.txtSleepMilliseconds.MaxLength = 3;
+            this.txtSleepMilliseconds.MaxLength = 5;
             this.txtSleepMilliseconds.Name = "txtSleepMilliseconds";
             this.txtSleepMilliseconds.Size = new System.Drawing.Size(32, 29);
             this.txtSleepMilliseconds.TabIndex = 22;
             this.txtSleepMilliseconds.Text = "0";
-            this.txtSleepMilliseconds.TextChanged += new System.EventHandler(this.txtSleepTime_TextChanged);
-            this.txtSleepMilliseconds.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtSleepTime_KeyPress);
+            this.txtSleepMilliseconds.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
+            this.txtSleepMilliseconds.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // label11
             // 
@@ -904,7 +904,7 @@ namespace MapleStoryTools
             this.txtSeconds.Size = new System.Drawing.Size(25, 29);
             this.txtSeconds.TabIndex = 11;
             this.txtSeconds.Text = "0";
-            this.txtSeconds.TextChanged += new System.EventHandler(this.txtRunTime_TextChanged);
+            this.txtSeconds.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
             this.txtSeconds.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // label8
@@ -1084,7 +1084,7 @@ namespace MapleStoryTools
             this.txtEndHours.Size = new System.Drawing.Size(25, 29);
             this.txtEndHours.TabIndex = 7;
             this.txtEndHours.Text = "0";
-            this.txtEndHours.TextChanged += new System.EventHandler(this.txtLoopEndTime_TextChanged);
+            this.txtEndHours.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
             this.txtEndHours.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // txtEndMinutes
@@ -1098,7 +1098,7 @@ namespace MapleStoryTools
             this.txtEndMinutes.Size = new System.Drawing.Size(25, 29);
             this.txtEndMinutes.TabIndex = 9;
             this.txtEndMinutes.Text = "0";
-            this.txtEndMinutes.TextChanged += new System.EventHandler(this.txtLoopEndTime_TextChanged);
+            this.txtEndMinutes.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
             this.txtEndMinutes.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // txtEndSeconds
@@ -1112,7 +1112,7 @@ namespace MapleStoryTools
             this.txtEndSeconds.Size = new System.Drawing.Size(25, 29);
             this.txtEndSeconds.TabIndex = 11;
             this.txtEndSeconds.Text = "0";
-            this.txtEndSeconds.TextChanged += new System.EventHandler(this.txtLoopEndTime_TextChanged);
+            this.txtEndSeconds.TextChanged += new System.EventHandler(this.TextBoxOnlyNumber_TextChanged);
             this.txtEndSeconds.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxOnlyNumber_KeyPress);
             // 
             // label16

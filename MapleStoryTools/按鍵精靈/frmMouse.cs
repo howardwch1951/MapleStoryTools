@@ -24,7 +24,6 @@ namespace MapleStoryTools
         bool isSingle = false;
         bool isScriptStart = false;
         bool isSetControlKey = false;
-        string keyDown;
         string keyUp;
         string[][] keyPress = new string[][] { };
         Point point = new Point();

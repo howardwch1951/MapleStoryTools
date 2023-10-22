@@ -46,10 +46,10 @@ namespace MapleStoryTools
         bool showUpdateMsg = false;
         string pathConfig = Path.Combine(Application.StartupPath, "Config", "Location.json");
         string localVersion = ConfigurationManager.AppSettings["Version"];
+        string UpdateFileUrl = "";
         bool isNewUpdate = Convert.ToBoolean(ConfigurationManager.AppSettings["isNewUpdate"]);
         bool isSimulation = Convert.ToBoolean(ConfigurationManager.AppSettings["isSimulation"]);
         List<Release> listRelease = new List<Release>();
-        DateTime checkTime = new DateTime();
         API api = new API();
         JsonFunction JS = new JsonFunction();
         public List<Location> listLocation = new List<Location>();
@@ -82,12 +82,25 @@ namespace MapleStoryTools
                     if (File.Exists(Path.Combine(Application.StartupPath, "Update.exe")))
                     {
                         File.Delete(Path.Combine(Application.StartupPath, "Update.exe"));
+                        File.Delete(Path.Combine(Application.StartupPath, "Update.exe.config"));
 
                         ZipFile.ExtractToDirectory(Path.Combine(Application.StartupPath, "Update.zip"), Application.StartupPath);
 
                         File.Delete(Path.Combine(Application.StartupPath, "Update.zip"));
                     }
                 }
+                #endregion
+
+                #region Delete Old File
+                if (false && localVersion == @"v1.1.9")
+                {
+                    if (File.Exists(Path.Combine(Application.StartupPath, "log4net.config")))
+                        File.Delete(Path.Combine(Application.StartupPath, "log4net.config"));
+                    if (File.Exists(Path.Combine(Application.StartupPath, "log4net.dll")))
+                        File.Delete(Path.Combine(Application.StartupPath, "log4net.dll"));
+                }
+                if (File.Exists(Path.Combine(Application.StartupPath, "UpdateNote.json")))
+                    File.Delete(Path.Combine(Application.StartupPath, "UpdateNote.json"));
                 #endregion
 
                 #region 更新Library
@@ -351,8 +364,9 @@ namespace MapleStoryTools
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string body = await response.Content.ReadAsStringAsync();
+                    string body = await response.Content.ReadAsStringAsync();                  
                     listRelease = JsonConvert.DeserializeObject<List<Release>>(body);
+                    UpdateFileUrl = JsonConvert.DeserializeObject<Assets>(listRelease[0].Assets[0].ToString()).browser_download_url;
                     Version = listRelease[0].Name;
                 }
             }
@@ -778,5 +792,11 @@ namespace MapleStoryTools
     {
         public string Name { get; set; }
         public string Body { get; set; }
+        public List<Object> Assets { get; set; }
+    }
+
+    public class Assets
+    {
+        public string browser_download_url { get; set; }
     }
 }

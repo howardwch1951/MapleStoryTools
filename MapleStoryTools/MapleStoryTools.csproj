@@ -266,9 +266,9 @@
     <EmbeddedResource Include="訊息視窗\frmUpdateMessageBox.resx">
       <DependentUpon>frmUpdateMessageBox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="訊息視窗\frmUpdateNote.resx">
+    <Resource Include="訊息視窗\frmUpdateNote.resx">
       <DependentUpon>frmUpdateNote.cs</DependentUpon>
-    </EmbeddedResource>
+    </Resource>
     <None Include="Icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

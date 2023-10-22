@@ -788,13 +788,28 @@ namespace MapleStoryTools
         }
         #endregion
 
-        #region 設定循環時間TextBox
-        private void txtRunTime_TextChanged(object sender, EventArgs e)
+        /// <summary>
+        /// Number TextBox的TextChanged
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TextBoxOnlyNumber_TextChanged(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(((TextBox)sender).Text))
             {
-                if (((TextBox)sender).Text.Length > 2)
-                    ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(1);
+
+                if (rdbtnLoopInTime.Checked)
+                    SetLoopEndTime();
+                else if (((TextBox)sender).Name == "txtSleepMilliseconds")
+                {
+                    if (((TextBox)sender).Text.Length > 3)
+                        ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(1);
+                }
+                else
+                {
+                    if (((TextBox)sender).Text.Length > 2)
+                        ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(1);
+                }
                 ((TextBox)sender).Text = Convert.ToInt32(((TextBox)sender).Text).ToString();
             }
             else
@@ -803,26 +818,27 @@ namespace MapleStoryTools
                 labFormatTime.Text = "";
             }
             ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
-            SetLoopTime();
+
+            if (((TextBox)sender).Name == "txtHours" || ((TextBox)sender).Name == "txtMinutes" || ((TextBox)sender).Name == "txtSeconds")
+                SetLoopTime();
+            else if (((TextBox)sender).Name == "txtEndHours" || ((TextBox)sender).Name == "txtEndMinutes" || ((TextBox)sender).Name == "txtEndSeconds")
+                SetLoopEndTime();
+            else if (((TextBox)sender).Name == "txtSleepHours" || ((TextBox)sender).Name == "txtSleepMinutes" || ((TextBox)sender).Name == "txtSleepSeconds" || ((TextBox)sender).Name == "txtSleepMilliseconds")
+            {
+                int hours = Convert.ToInt32(txtSleepHours.Text); // 小時數
+                int minutes = Convert.ToInt32(txtSleepMinutes.Text); // 分鐘數
+                int seconds = Convert.ToInt32(txtSleepSeconds.Text); // 秒數
+                int milliseconds = Convert.ToInt32(txtSleepMilliseconds.Text); // 秒數
+                TotalSleepSeconds = hours * 3600 + minutes * 60 + seconds + (double)milliseconds / (double)1000;
+
+                labTotalSleepSeconds.Text = $"(總共 {TotalSleepSeconds} 秒)";
+
+                WaitTime = (int)(TotalSleepSeconds * 1000);
+            }
         }
-
-        private void SetLoopTime()
-        {
-            int hours = Convert.ToInt32(txtHours.Text); // 小時數
-            int minutes = Convert.ToInt32(txtMinutes.Text); // 分鐘數
-            int seconds = Convert.ToInt32(txtSeconds.Text); // 秒數
-            TotalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-            labFormatTime.Text = $"(總共 {TotalSeconds} 秒)";
-
-            LoopTime = TotalSeconds * 1000;
-
-            nextRumTime = DateTime.Now.AddSeconds(-10);
-        }
-        #endregion
 
         /// <summary>
-        /// 設定TextBox只能輸入數字
+        /// Number TextBox的KeyPress
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -845,17 +861,26 @@ namespace MapleStoryTools
                 e.Handled = true;
                 return;
             }
+        }
 
-            //if (((TextBox)sender).Text.Length > 1)
-            //{
-            //    ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(((TextBox)sender).Text.Length - 1);
-            //    ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
-            //}
-            //((TextBox)sender).Text = ((TextBox)sender).Text.TrimStart('0');
+        /// <summary>
+        /// 設定循環時間
+        /// </summary>
+        private void SetLoopTime()
+        {
+            int hours = Convert.ToInt32(txtHours.Text); // 小時數
+            int minutes = Convert.ToInt32(txtMinutes.Text); // 分鐘數
+            int seconds = Convert.ToInt32(txtSeconds.Text); // 秒數
+            TotalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+            labFormatTime.Text = $"(總共 {TotalSeconds} 秒)";
+
+            LoopTime = TotalSeconds * 1000;
+
+            nextRumTime = DateTime.Now.AddSeconds(-10);
         }
 
         #region 腳本設定
-        #region 設定等待時間
         /// <summary>
         /// 加入等待時間
         /// </summary>
@@ -889,72 +914,6 @@ namespace MapleStoryTools
                     dgvCommand.CurrentCell = dgvCommand.Rows[index + 1].Cells[0];
             }
         }
-
-        /// <summary>
-        /// 等待時間TextBox TextChanged
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void txtSleepTime_TextChanged(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrEmpty(((TextBox)sender).Text))
-            {
-                int hours = Convert.ToInt32(txtSleepHours.Text); // 小時數
-                int minutes = Convert.ToInt32(txtSleepMinutes.Text); // 分鐘數
-                int seconds = Convert.ToInt32(txtSleepSeconds.Text); // 秒數
-                int milliseconds = Convert.ToInt32(txtSleepMilliseconds.Text); // 秒數
-                TotalSleepSeconds = hours * 3600 + minutes * 60 + seconds + (double)milliseconds / (double)1000;
-
-                labTotalSleepSeconds.Text = $"(總共 {TotalSleepSeconds} 秒)";
-
-                WaitTime = (int)(TotalSleepSeconds * 1000);
-            }
-        }
-
-        /// <summary>
-        /// 等待時間TextBox KeyPress
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void txtSleepTime_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            // e.KeyChar == (Char)48 ~ 57 -----> 0~9
-            // e.KeyChar == (Char)8 -----------> Backpace
-            // e.KeyChar == (Char)13-----------> Enter
-            if (e.KeyChar == (Char)48 || e.KeyChar == (Char)49 ||
-               e.KeyChar == (Char)50 || e.KeyChar == (Char)51 ||
-               e.KeyChar == (Char)52 || e.KeyChar == (Char)53 ||
-               e.KeyChar == (Char)54 || e.KeyChar == (Char)55 ||
-               e.KeyChar == (Char)56 || e.KeyChar == (Char)57 ||
-               e.KeyChar == (Char)13)
-            {
-                e.Handled = false;
-            }
-            else
-            {
-                e.Handled = true;
-                return;
-            }
-
-            if (((TextBox)sender).Name == "txtSleepMilliseconds")
-            {
-                if (((TextBox)sender).Text.Length > 2)
-                {
-                    ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(((TextBox)sender).Text.Length - 1);
-                    ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
-                }
-            }
-            else 
-            {
-                if (((TextBox)sender).Text.Length > 1)
-                {
-                    ((TextBox)sender).Text = ((TextBox)sender).Text.Substring(((TextBox)sender).Text.Length - 1);
-                    ((TextBox)sender).SelectionStart = ((TextBox)sender).Text.Length;
-                }
-            }
-            ((TextBox)sender).Text = ((TextBox)sender).Text.TrimStart('0');
-        }
-        #endregion
 
         #region 設定鍵盤指令
         /// <summary>
@@ -1985,15 +1944,9 @@ namespace MapleStoryTools
             }
         }
 
-        #region 設定循環結束時間
-        private void txtLoopEndTime_TextChanged(object sender, EventArgs e)
-        {
-            if (rdbtnLoopInTime.Checked && !string.IsNullOrEmpty(((TextBox)sender).Text))
-            {
-                SetLoopEndTime();
-            }
-        }
-
+        /// <summary>
+        /// 設定循環結束時間
+        /// </summary>
         private void SetLoopEndTime()
         {
             int hours = Convert.ToInt32(txtEndHours.Text); // 小時數
@@ -2001,8 +1954,6 @@ namespace MapleStoryTools
             int seconds = Convert.ToInt32(txtEndSeconds.Text); // 秒數
             TotalEndSeconds = hours * 3600 + minutes * 60 + seconds;
         }
-
-        #endregion
 
         private void chbShowPoint_CheckedChanged(object sender, EventArgs e)
         {

@@ -231,6 +231,7 @@
             this.menuAccount.Name = "menuAccount";
             this.menuAccount.Size = new System.Drawing.Size(43, 20);
             this.menuAccount.Text = "帳號";
+            this.menuAccount.Visible = false;
             // 
             // menuLogin
             // 
